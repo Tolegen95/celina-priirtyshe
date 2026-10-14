@@ -54,7 +54,25 @@ const quizQuestions=[
   {q:"Как корректно использовать данные школьного языкового опроса?",a:["Как доказательство прямой причинности","Как данные обо всём Казахстане","Как иллюстрацию и основу для гипотезы","Их нельзя обсуждать"],correct:2,why:"Выборка одной школы иллюстративна. Связь с историческими изменениями можно обсуждать как рабочую гипотезу."}
 ];
 
-const menu=document.querySelector('.menu-toggle');const nav=document.querySelector('nav');menu.addEventListener('click',()=>{const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',open)});nav.addEventListener('click',()=>{nav.classList.remove('open');menu.setAttribute('aria-expanded','false')});
+const translations={ru:{menu:"Меню",'nav.chronicle':"Лента времени",'nav.archive':"Архив",'nav.map':"Карта",'nav.story':"Сценарий",'nav.lesson':"Урок",'nav.quiz':"Викторина",'hero.eyebrow':"Интерактивное учебное пособие · 1954–1960-е",'hero.title':"Степь, которая<br><em>изменила регион</em>",'hero.lead':"История освоения целины в Павлодарском Прииртышье — через даты, архивные документы, географию и судьбы людей.",'hero.start':"Начать исследование ", 'hero.about':"О проекте ",'results.title':"Главные выводы",'results.lead':"Целина в Прииртышье — не только история успеха, но и история выбора, условий и последствий, которые формируют регион сегодня.",'results.card1.title':"Масштаб",'results.card1.text':"Кампания изменила структуру земледелия, миграции, инфраструктуры и темпы роста региона за несколько лет.",'results.card2.title':"Цена",'results.card2.text':"Нарастали нагрузки на почву, жильё, образование и здоровье, а часть решений оказалась слишком жёсткой для местных условий.",'results.card3.title':"Память",'results.card3.text':"История сохраняется в архиве, воспоминаниях и языковых практиках, поэтому важно читать её не одной оценкой, а в контексте.",'results.cta.label':"Весь комплект материалов",'results.cta.title':"Подготовьте урок, лекцию или исследовательский проект.",'results.cta.button':"Скачать материалы"},kz:{menu:"Мәзір",'nav.chronicle':"Уақыт сызығы",'nav.archive':"Архив",'nav.map':"Карта",'nav.story':"Сценарий",'nav.lesson':"Сабақ",'nav.quiz':"Викторина",'hero.eyebrow':"Интерактивті оқу құралы · 1954–1960 жж.",'hero.title':"Дала, ол <em>аймақты өзгертті</em>",'hero.lead':"Павлодар Приіртышындағы тың игеру тарихы — күндер, мұрағат құжаттары, география және адамдардың тағдыры арқылы.",'hero.start':"Зерттеуді бастау ", 'hero.about':"Жоба туралы ",'results.title':"Негізгі қорытындылар",'results.lead':"Приіртыштағы целина — тек табыс тарихы ғана емес, ол аймақтың бүгінгі қалыптасуын анықтайтын таңдау, жағдайлар мен салдарлар тарихы.",'results.card1.title':"Масштаб",'results.card1.text':"Кампания бірнеше жыл ішінде өңірдің жер өңдеу, көші-қон, инфрақұрылым және даму қарқынын өзгертті.",'results.card2.title':"Құны",'results.card2.text':"Топырақ, тұрғын үй, білім және денсаулыққа жүктемелер өсті, ал кейбір шешімдер жергілікті жағдайға тым қатал болды.",'results.card3.title':"Естелік",'results.card3.text':"Тарих мұрағатта, естеліктерде және тілдік тәжірибеде сақталады, сондықтан оны бір көзқараспен емес, контекстпен оқу керек.",'results.cta.label':"Материалдардың барлығы",'results.cta.title':"Сабақ, лекция немесе зерттеу жобасын дайындаңыз.",'results.cta.button':"Материалдарды жүктеу"}};
+
+const menu=document.querySelector('.menu-toggle');const nav=document.querySelector('nav');
+const langButtons=document.querySelectorAll('.language-switcher button');
+function applyLanguage(lang){
+  const current=translations[lang]||translations.ru;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.dataset.i18n;
+    if(current[key]) {
+      el.innerHTML=current[key];
+    }
+  });
+  langButtons.forEach(btn=>btn.classList.toggle('active',btn.dataset.lang===lang));
+  document.documentElement.lang = lang === 'kz' ? 'kk' : 'ru';
+  try { localStorage.setItem('siteLanguage', lang); } catch (error) {}
+}
+langButtons.forEach(btn=>btn.addEventListener('click',()=>applyLanguage(btn.dataset.lang)));
+applyLanguage(localStorage.getItem('siteLanguage') || 'ru');
+menu.addEventListener('click',()=>{const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',open)});nav.addEventListener('click',()=>{nav.classList.remove('open');menu.setAttribute('aria-expanded','false')});
 
 document.querySelectorAll('.timeline-tab').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.timeline-tab').forEach(x=>{x.classList.remove('active');x.setAttribute('aria-selected','false')});btn.classList.add('active');btn.setAttribute('aria-selected','true');const d=timelineData[btn.dataset.year];document.querySelector('#timeline-year').textContent=btn.dataset.year;document.querySelector('#timeline-kicker').textContent=d.kicker;document.querySelector('#timeline-title').textContent=d.title;document.querySelector('#timeline-text').textContent=d.text;document.querySelector('#timeline-source').textContent=d.source}));
 
@@ -70,4 +88,41 @@ document.querySelectorAll('.lesson-stage').forEach((btn,i)=>btn.addEventListener
 
 let questionIndex=0,score=0;function renderQuestion(){const q=quizQuestions[questionIndex];document.querySelector('#quiz-current').textContent=String(questionIndex+1).padStart(2,'0');document.querySelector('#question-number').textContent=questionIndex+1;document.querySelector('#question-text').textContent=q.q;const list=document.querySelector('#answer-list');list.innerHTML='';q.a.forEach((a,i)=>{const b=document.createElement('button');b.className='answer';b.textContent=a;b.addEventListener('click',()=>answerQuestion(i));list.appendChild(b)});document.querySelector('#quiz-feedback').hidden=true;document.querySelector('#next-question').hidden=true}function answerQuestion(i){const q=quizQuestions[questionIndex];const buttons=[...document.querySelectorAll('.answer')];buttons.forEach((b,j)=>{b.disabled=true;if(j===q.correct)b.classList.add('correct');if(j===i&&i!==q.correct)b.classList.add('wrong')});if(i===q.correct)score++;const f=document.querySelector('#quiz-feedback');f.hidden=false;f.innerHTML=`<strong>${i===q.correct?'Верно':'Не совсем'}</strong>${q.why}`;const next=document.querySelector('#next-question');next.hidden=false;next.textContent=questionIndex===quizQuestions.length-1?'Узнать результат →':'Следующий вопрос →'}document.querySelector('#next-question').addEventListener('click',()=>{if(questionIndex<quizQuestions.length-1){questionIndex++;renderQuestion()}else{document.querySelector('#quiz-card').innerHTML=`<p class="question-label">Результат</p><div class="result-score">${score}/5</div><h3>${score===5?'Отличная работа!':score>=3?'Хорошая основа':'Стоит вернуться к материалам'}</h3><p>${score===5?'Вы уверенно сопоставляете даты, факты и исследовательские оговорки.':score>=3?'Вы уловили главные связи. Лента времени и архив помогут закрепить детали.':'Попробуйте ещё раз после просмотра ленты времени и раздела об исследовании.'}</p><button class="button button-dark" type="button" onclick="location.reload()">Пройти ещё раз</button>`}});renderQuestion();
 
+let cardIndex=0;
+const cardsPanel=document.querySelector('#quiz-cards-panel');
+const testPanel=document.querySelector('#quiz-test-panel');
+function renderFlashcard(){
+  const card=quizQuestions[cardIndex];
+  document.querySelector('#card-number').textContent=cardIndex+1;
+  document.querySelector('#quiz-current').textContent=String(cardIndex+1).padStart(2,'0');
+  document.querySelector('#card-question').textContent=card.q;
+  document.querySelector('#card-answer').innerHTML=`<strong>${card.a[card.correct]}</strong><p>${card.why}</p>`;
+  document.querySelector('#card-answer').hidden=true;
+  document.querySelector('#card-reveal').textContent='Показать ответ';
+}
+document.querySelectorAll('[data-quiz-mode]').forEach(button=>button.addEventListener('click',()=>{
+  const cardsMode=button.dataset.quizMode==='cards';
+  document.querySelectorAll('[data-quiz-mode]').forEach(mode=>{
+    const active=mode===button;
+    mode.classList.toggle('active',active);
+    mode.setAttribute('aria-pressed',String(active));
+  });
+  testPanel.hidden=cardsMode;
+  cardsPanel.hidden=!cardsMode;
+  if(cardsMode)renderFlashcard();
+  else document.querySelector('#quiz-current').textContent=String(questionIndex+1).padStart(2,'0');
+}));
+document.querySelector('#card-reveal').addEventListener('click',()=>{
+  const answer=document.querySelector('#card-answer');
+  answer.hidden=!answer.hidden;
+  document.querySelector('#card-reveal').textContent=answer.hidden?'Показать ответ':'Скрыть ответ';
+});
+document.querySelector('#card-prev').addEventListener('click',()=>{
+  cardIndex=(cardIndex+quizQuestions.length-1)%quizQuestions.length;
+  renderFlashcard();
+});
+document.querySelector('#card-next').addEventListener('click',()=>{
+  cardIndex=(cardIndex+1)%quizQuestions.length;
+  renderFlashcard();
+});
 const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.12});document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
